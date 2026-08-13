@@ -51,7 +51,7 @@ The platform unifies **digital QR menu ordering**, **cashier counter POS orderin
 
 ### 2.5 Cost-Effective Monolithic Scalability
 
-- **Low Infrastructure Overhead:** Designed to run efficiently on a modest VPS (4 vCPU / 8 GB RAM) capable of serving high concurrent peak-hour traffic during the Lucknow beta deployment.
+- **Low Infrastructure Overhead:** Designed to run efficiently on a modest VPS (4 vCPU / 8 GB RAM) capable of serving high concurrent peak-hour traffic during the Pan India production deployment.
 
 ---
 

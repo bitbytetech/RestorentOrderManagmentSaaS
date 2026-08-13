@@ -1,7 +1,8 @@
 # RestroHub — Multi-Tenant Restaurant Order Management SaaS
 
 > **Positioning:** QR Ordering + Multi-Outlet Menu & Order Management for Growing Restaurants  
-> **Beta Target:** Lucknow F&B Market  
+> **Market Focus:** Pan India Restaurant & F&B Market  
+> **Acquisition Offer:** 100 Orders/Day Lifetime Free for 1 Outlet (Limited Time Offer for First 100 Customers)  
 > **Architecture:** Modular Django Monolith with PostgreSQL 16, Redis 7, Alpine.js 3, & Bootstrap 5.3  
 > **Deployment Target:** Single VPS Containerized Setup (Ubuntu / Docker Compose / Nginx)
 
@@ -83,7 +84,7 @@ RestorentOrderManagmentSaaS/
 
 For full technical specifications and implementation guidelines, refer to the documents in the [`docs/`](file:///Users/ankit/MyData/BpstProducts/RestorentOrderManagmentSaaS/docs) directory:
 
-1. 📄 [01. Product Requirements Document](file:///Users/ankit/MyData/BpstProducts/RestorentOrderManagmentSaaS/docs/01_PRODUCT_REQUIREMENTS.md) — Product vision, target establishment types, and Lucknow launch strategy.
+1. 📄 [01. Product Requirements Document](file:///Users/ankit/MyData/BpstProducts/RestorentOrderManagmentSaaS/docs/01_PRODUCT_REQUIREMENTS.md) — Product vision, target establishment types, and Pan India launch strategy.
 2. 📄 [02. Architecture & Multi-Tenancy](file:///Users/ankit/MyData/BpstProducts/RestorentOrderManagmentSaaS/docs/02_ARCHITECTURE_AND_MULTI_TENANCY.md) — Technical stack, row-level multi-tenancy safeguards, middleware, and caching layers.
 3. 📄 [03. Database Schema Specification](file:///Users/ankit/MyData/BpstProducts/RestorentOrderManagmentSaaS/docs/03_DATABASE_SCHEMA.md) — Production-ready SQL DDL, table relationships, foreign keys, and indexes.
 4. 📄 [04. Functional Specifications](file:///Users/ankit/MyData/BpstProducts/RestorentOrderManagmentSaaS/docs/04_FUNCTIONAL_SPECIFICATIONS.md) — RBAC matrix, Explicit Variant Pricing Engine, dynamic QR tables, Counter POS & KOT flow.

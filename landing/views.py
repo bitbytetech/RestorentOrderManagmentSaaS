@@ -6,8 +6,8 @@ import json
 def index(request):
     """
     RestroHub Production Landing Page View.
-    Positioning: QR Ordering + Multi-Outlet Menu & Order Management for Growing Restaurants.
-    Competitor Benchmarks: Toast, Petpooja, Posist.
+    Positioning: QR Ordering + Multi-Outlet Menu & Order Management for Growing Restaurants Across India.
+    Offer: Limited Time Offer — Lifetime Free 100 Orders/Day for First 100 Customers (Pan India).
     """
     demo_items = [
         {
@@ -24,7 +24,7 @@ def index(request):
         },
         {
             'id': 'item-2',
-            'name': 'Royal Awadhi Dum Biryani',
+            'name': 'Royal Dum Biryani',
             'category': 'Main Course',
             'is_veg': False,
             'description': 'Slow-cooked fragrant Basmati rice layered with succulent marinated meat & saffron.',
@@ -63,12 +63,16 @@ def index(request):
 
     faqs = [
         {
-            'q': 'Is the 100 Free Orders/Day Starter Plan really 100% free?',
-            'a': 'Yes! RestroHub offers a lifetime free plan for 1 outlet handling up to 100 orders per day. 0% commission, 0 setup charges, and no credit card required.'
+            'q': 'How does the Limited Time Offer for the first 100 customers work?',
+            'a': 'The first 100 restaurant signups across India get lifetime free access to our Starter Plan (1 outlet, 100 orders/day). 0% commission, 0 setup fees, and no credit card required.'
         },
         {
             'q': 'Do guests need to download an app to order?',
             'a': 'No app installation required! Guests simply scan the QR code using standard mobile browsers (Safari, Chrome) to explore the digital menu and place orders.'
+        },
+        {
+            'q': 'Is RestroHub available across all cities in India?',
+            'a': 'Yes! RestroHub is available Pan India for restaurants, cafes, cloud kitchens, sweet shops, bakeries, and multi-outlet chains.'
         },
         {
             'q': 'How does Multi-Outlet Menu & Pricing Management work?',
@@ -85,11 +89,11 @@ def index(request):
     ]
 
     context = {
-        'page_title': 'RestroHub — Manage Menus, Orders & Outlets from One Dashboard',
+        'page_title': 'RestroHub — Manage Menus, Orders & Outlets from One Dashboard (Pan India)',
         'demo_items_json': json.dumps(demo_items),
         'demo_items': demo_items,
         'faqs': faqs,
-        'city_launch': 'Lucknow'
+        'region': 'Pan India'
     }
     return render(request, 'landing/index.html', context)
 
@@ -100,7 +104,7 @@ def demo_menu(request):
     """
     return render(request, 'landing/demo_menu.html', {
         'brand_name': 'RestroHub',
-        'outlet_name': 'Royal Awadhi Cuisine — Hazratganj',
+        'outlet_name': 'Royal Cuisine — Main Outlet',
         'table_number': 'T4',
     })
 
@@ -115,14 +119,14 @@ def quick_signup(request):
         brand_name = data.get('brand_name')
         owner_name = data.get('owner_name')
         mobile = data.get('mobile')
-        city = data.get('city', 'Lucknow')
+        city = data.get('city', 'India')
 
         if not brand_name or not owner_name or not mobile:
             return JsonResponse({'success': False, 'message': 'Please fill all required fields.'}, status=400)
 
         return JsonResponse({
             'success': True,
-            'message': f'Congratulations {owner_name}! Your RestroHub free account for "{brand_name}" ({city}) with 100 Free Daily Orders has been created. Redirecting to dashboard...',
+            'message': f'Congratulations {owner_name}! Your RestroHub free account for "{brand_name}" ({city}) under the First 100 Customers Limited Offer (100 Free Daily Orders) has been reserved. Redirecting to dashboard...',
             'redirect_url': '/#signup-success'
         })
     except Exception as e:

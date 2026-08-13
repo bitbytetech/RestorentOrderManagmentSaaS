@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ page_title|default:"RestroHub — Manage Menus, Orders & Outlets from One Dashboard" }}{% endblock %}</title>
     <meta name="description" content="RestroHub is the all-in-one restaurant SaaS platform: QR ordering, dine-in tables, takeaway orders, outlet-wise pricing, and real-time analytics for modern restaurants.">
-    <meta name="theme-color" content="#0F172A">
-
+    
     <!-- Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,28 +22,29 @@
 
     <!-- Alpine.js 3.x defer -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="{% static 'js/landing.js' %}"></script>
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-dark-slate text-light font-inter">
+<body>
 
-    <!-- Top Beta Launch Announcement Bar -->
+    <!-- Top Announcement Bar (First 100 Customers Pan India Offer) -->
     <div class="top-announcement-bar py-2 text-center text-sm font-weight-600">
         <div class="container d-flex justify-content-center align-items-center flex-wrap gap-2">
-            <span class="badge bg-orange text-white px-2.5 py-1 rounded-pill">🚀 Lucknow Beta Offer</span>
-            <span>Get <strong>1 Outlet Free for Life</strong> (Up to 100 orders/day, QR ordering included, no credit card required).</span>
-            <a href="#signup-modal" data-bs-toggle="modal" class="text-warning text-decoration-underline fw-bold ms-2">Claim Free Access &rarr;</a>
+            <span class="badge bg-orange text-white px-2.5 py-1 rounded-pill">🔥 Limited Time Offer</span>
+            <span>Get <strong>100 Free Orders/Day Lifetime Free</strong> for 1 Outlet (First 100 Customers Across India!).</span>
+            <a href="#signup-modal" data-bs-toggle="modal" class="text-amber text-decoration-underline fw-bold ms-2">Claim Free Access &rarr;</a>
         </div>
     </div>
 
     <!-- Navigation Header -->
-    <nav class="navbar navbar-expand-lg sticky-top glass-nav navbar-dark py-3">
+    <nav class="navbar navbar-expand-lg sticky-top glass-nav py-3">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'landing:home' %}">
                 <div class="brand-icon-bg d-flex align-items-center justify-content-center">
                     <i class="bi bi-shop-window text-orange fs-4"></i>
                 </div>
-                <span class="font-outfit fw-extrabold fs-3 tracking-tight text-white">Restro<span class="text-orange">Hub</span></span>
+                <span class="font-outfit fw-extrabold fs-3 tracking-tight text-heading">Restro<span class="text-orange">Hub</span></span>
             </a>
 
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
@@ -53,16 +53,23 @@
 
             <div class="collapse navbar-collapse" id="navMenu">
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-3 text-sm">
-                    <li class="nav-item"><a class="nav-link text-slate-300" href="#how-it-works">How It Works</a></li>
-                    <li class="nav-item"><a class="nav-link text-slate-300" href="#features">Features</a></li>
-                    <li class="nav-item"><a class="nav-link text-slate-300" href="#multi-outlet">Multi-Outlet</a></li>
-                    <li class="nav-item"><a class="nav-link text-slate-300" href="#analytics">Analytics</a></li>
-                    <li class="nav-item"><a class="nav-link text-slate-300" href="#pricing">Pricing</a></li>
-                    <li class="nav-item"><a class="nav-link text-slate-300" href="#faq">FAQ</a></li>
+                    <li class="nav-item"><a class="nav-link text-body fw-medium" href="#how-it-works">How It Works</a></li>
+                    <li class="nav-item"><a class="nav-link text-body fw-medium" href="#features">Features</a></li>
+                    <li class="nav-item"><a class="nav-link text-body fw-medium" href="#multi-outlet">Multi-Outlet</a></li>
+                    <li class="nav-item"><a class="nav-link text-body fw-medium" href="#analytics">Analytics</a></li>
+                    <li class="nav-item"><a class="nav-link text-body fw-medium" href="#pricing">Pricing</a></li>
+                    <li class="nav-item"><a class="nav-link text-body fw-medium" href="#faq">FAQ</a></li>
                 </ul>
 
-                <div class="d-flex align-items-center gap-2">
-                    <a href="#signup-modal" data-bs-toggle="modal" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 border-slate">
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Light / Dark Theme Toggle Switch -->
+                    <button type="button" class="theme-toggle-btn d-inline-flex align-items-center gap-1.5" onclick="toggleTheme()" title="Toggle Light / Dark Mode">
+                        <i class="bi bi-sun-fill text-warning fs-6"></i>
+                        <span>/</span>
+                        <i class="bi bi-moon-stars-fill text-primary fs-6"></i>
+                    </button>
+
+                    <a href="#signup-modal" data-bs-toggle="modal" class="btn btn-outline-orange btn-sm rounded-pill px-3 py-2">
                         Book Demo
                     </a>
                     <a href="#signup-modal" data-bs-toggle="modal" class="btn btn-orange btn-sm rounded-pill px-4 py-2 fw-bold shadow">
@@ -79,18 +86,18 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-top border-slate-800 bg-slate-950 text-slate-400 py-5 mt-5">
+    <footer class="border-top border-subtle bg-footer text-muted-custom py-5 mt-5">
         <div class="container">
             <div class="row g-4">
                 <div class="col-lg-4">
                     <a class="d-flex align-items-center gap-2 mb-3 text-decoration-none" href="{% url 'landing:home' %}">
                         <i class="bi bi-shop-window text-orange fs-3"></i>
-                        <span class="font-outfit fw-extrabold fs-3 text-white">Restro<span class="text-orange">Hub</span></span>
+                        <span class="font-outfit fw-extrabold fs-3 text-heading">Restro<span class="text-orange">Hub</span></span>
                     </a>
-                    <p class="text-sm text-slate-400">
+                    <p class="text-sm text-muted-custom">
                         The all-in-one QR Ordering + Multi-Outlet Menu & Order Management SaaS platform for growing restaurants, cafes, cloud kitchens, sweet shops & bars.
                     </p>
-                    <div class="d-flex gap-3 text-slate-400 fs-5 mt-3">
+                    <div class="d-flex gap-3 text-muted-custom fs-5 mt-3">
                         <a href="https://wa.me/919876543210" target="_blank" class="text-success"><i class="bi bi-whatsapp"></i></a>
                         <a href="#" class="hover-text-orange"><i class="bi bi-instagram"></i></a>
                         <a href="#" class="hover-text-orange"><i class="bi bi-linkedin"></i></a>
@@ -98,34 +105,34 @@
                 </div>
 
                 <div class="col-6 col-lg-2">
-                    <h6 class="text-white fw-bold font-outfit mb-3">Product</h6>
+                    <h6 class="text-heading fw-bold font-outfit mb-3">Product</h6>
                     <ul class="list-unstyled text-sm d-flex flex-column gap-2">
-                        <li><a href="#features" class="text-slate-400 hover-text-white text-decoration-none">QR Ordering Engine</a></li>
-                        <li><a href="#features" class="text-slate-400 hover-text-white text-decoration-none">Smart Menu Management</a></li>
-                        <li><a href="#multi-outlet" class="text-slate-400 hover-text-white text-decoration-none">Multi-Outlet Control</a></li>
-                        <li><a href="#analytics" class="text-slate-400 hover-text-white text-decoration-none">Business Analytics</a></li>
+                        <li><a href="#features" class="text-muted-custom hover-text-orange text-decoration-none">QR Ordering Engine</a></li>
+                        <li><a href="#features" class="text-muted-custom hover-text-orange text-decoration-none">Smart Menu Management</a></li>
+                        <li><a href="#multi-outlet" class="text-muted-custom hover-text-orange text-decoration-none">Multi-Outlet Control</a></li>
+                        <li><a href="#analytics" class="text-muted-custom hover-text-orange text-decoration-none">Business Analytics</a></li>
                     </ul>
                 </div>
 
                 <div class="col-6 col-lg-2">
-                    <h6 class="text-white fw-bold font-outfit mb-3">Pricing</h6>
+                    <h6 class="text-heading fw-bold font-outfit mb-3">Pricing</h6>
                     <ul class="list-unstyled text-sm d-flex flex-column gap-2">
                         <li><a href="#pricing" class="text-orange fw-bold text-decoration-none">Starter (₹0 / lifetime)</a></li>
-                        <li><a href="#pricing" class="text-slate-400 hover-text-white text-decoration-none">Growth (₹699 / mo)</a></li>
-                        <li><a href="#pricing" class="text-slate-400 hover-text-white text-decoration-none">Professional (₹1,499 / mo)</a></li>
-                        <li><a href="#pricing" class="text-slate-400 hover-text-white text-decoration-none">Enterprise Quotes</a></li>
+                        <li><a href="#pricing" class="text-muted-custom hover-text-orange text-decoration-none">Growth (₹699 / mo)</a></li>
+                        <li><a href="#pricing" class="text-muted-custom hover-text-orange text-decoration-none">Professional (₹1,499 / mo)</a></li>
+                        <li><a href="#pricing" class="text-muted-custom hover-text-orange text-decoration-none">Enterprise Quotes</a></li>
                     </ul>
                 </div>
 
                 <div class="col-lg-4">
-                    <h6 class="text-white fw-bold font-outfit mb-3">Lucknow Onboarding Desk</h6>
+                    <h6 class="text-heading fw-bold font-outfit mb-3">Pan India Partner Support Desk</h6>
                     <div class="card-restrohub p-3 rounded-3 text-sm">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="bi bi-geo-alt-fill text-orange"></i>
-                            <span class="text-white fw-medium">Hazratganj & Gomti Nagar Hubs</span>
+                            <span class="text-heading fw-medium">All Major Cities Across India</span>
                         </div>
-                        <p class="mb-2 text-slate-400 text-xs">
-                            Offering free on-site setup, digital menu digitization & staff onboarding for pilot restaurants in Lucknow.
+                        <p class="mb-2 text-muted-custom text-xs">
+                            Offering free online setup, digital menu digitization & staff onboarding for the first 100 restaurant customers across India.
                         </p>
                         <a href="https://wa.me/919876543210" target="_blank" class="text-success fw-bold text-decoration-none text-xs d-inline-flex align-items-center gap-1">
                             <i class="bi bi-whatsapp"></i> Chat on WhatsApp (+91 98765 43210)
@@ -134,12 +141,12 @@
                 </div>
             </div>
 
-            <div class="border-top border-slate-800 mt-5 pt-4 d-flex flex-column flex-md-row justify-content-between align-items-center text-xs text-slate-500">
+            <div class="border-top border-subtle mt-5 pt-4 d-flex flex-column flex-md-row justify-content-between align-items-center text-xs text-muted-custom">
                 <p class="mb-0">&copy; 2026 RestroHub SaaS Platform. Built with Python, Django, PostgreSQL & Redis.</p>
                 <div class="d-flex gap-4 mt-2 mt-md-0">
-                    <a href="#" class="text-slate-500 hover-text-slate-300 text-decoration-none">Privacy Policy</a>
-                    <a href="#" class="text-slate-500 hover-text-slate-300 text-decoration-none">Terms of Service</a>
-                    <a href="#" class="text-slate-500 hover-text-slate-300 text-decoration-none">Lucknow Partner Cohort</a>
+                    <a href="#" class="text-muted-custom hover-text-orange text-decoration-none">Privacy Policy</a>
+                    <a href="#" class="text-muted-custom hover-text-orange text-decoration-none">Terms of Service</a>
+                    <a href="#" class="text-muted-custom hover-text-orange text-decoration-none">India Partner Network</a>
                 </div>
             </div>
         </div>
@@ -147,7 +154,6 @@
 
     <!-- Bootstrap 5.3 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/landing.js' %}"></script>
 
     {% block extra_js %}{% endblock %}
 </body>

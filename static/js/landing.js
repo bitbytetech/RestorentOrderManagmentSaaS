@@ -1,6 +1,36 @@
 /**
- * Landing Page Interactive Script (Alpine.js Components)
+ * RestroHub Production Interactive Engine (Alpine.js + Theme Toggle)
  */
+
+// Initialize theme immediately before render to avoid flash
+(function() {
+    const savedTheme = localStorage.getItem('restrohub_theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark-mode');
+    } else {
+        document.documentElement.classList.remove('dark-mode');
+    }
+})();
+
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('restrohub_theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+});
+
+function toggleTheme() {
+    const isDark = document.documentElement.classList.contains('dark-mode');
+    if (isDark) {
+        document.documentElement.classList.remove('dark-mode');
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('restrohub_theme', 'light');
+    } else {
+        document.documentElement.classList.add('dark-mode');
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('restrohub_theme', 'dark');
+    }
+}
 
 document.addEventListener('alpine:init', () => {
 
@@ -9,15 +39,6 @@ document.addEventListener('alpine:init', () => {
         activeCategory: 'All',
         cart: [],
         tableNumber: 'T4',
-        selectedVariants: {},
-
-        init() {
-            // Default selected variants for items
-            this.selectedVariants['item-1'] = 1; // Half
-            this.selectedVariants['item-2'] = 1; // Full
-            this.selectedVariants['item-3'] = 0; // Half
-            this.selectedVariants['item-4'] = 1; // 250g
-        },
 
         get cartTotal() {
             return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -54,34 +75,39 @@ document.addEventListener('alpine:init', () => {
         }
     }));
 
-    // 2. Interactive Commission & ROI Savings Calculator
-    Alpine.data('savingsCalculator', () => ({
-        dailyOrders: 100,
-        avgOrderValue: 350,
-
-        get monthlyRevenue() {
-            return this.dailyOrders * this.avgOrderValue * 30;
-        },
-
-        get annualRevenue() {
-            return this.monthlyRevenue * 12;
-        },
-
-        get aggregatorCommission() {
-            // Aggregators like Swiggy/Zomato charge ~25%
-            return Math.round(this.monthlyRevenue * 0.25);
-        },
-
-        get annualCommissionSaved() {
-            return Math.round(this.annualRevenue * 0.25);
-        },
-
-        get isFreeEligible() {
-            return this.dailyOrders <= 100;
+    // 2. Multi-Outlet Interactive Sandbox Component
+    Alpine.data('multiOutletDemo', () => ({
+        selectedOutlet: 'hazratganj',
+        outlets: {
+            'hazratganj': {
+                name: 'Hazratganj Outlet (High Street)',
+                paneerPrice: 310,
+                kajuKatliPrice: 1150,
+                status: 'Master Menu Active'
+            },
+            'gomti': {
+                name: 'Gomti Nagar Outlet (Mall)',
+                paneerPrice: 350,
+                kajuKatliPrice: 1200,
+                status: 'Price Override Active (+12%)'
+            }
         }
     }));
 
-    // 3. Quick Owner Signup Form Component
+    // 3. Pricing Tier Billing Toggle (Monthly vs Annual)
+    Alpine.data('pricingToggle', () => ({
+        billingCycle: 'monthly',
+
+        get growthPrice() {
+            return this.billingCycle === 'annual' ? 559 : 699;
+        },
+
+        get proPrice() {
+            return this.billingCycle === 'annual' ? 1199 : 1499;
+        }
+    }));
+
+    // 4. Quick Owner Signup Form Component
     Alpine.data('signupForm', () => ({
         brandName: '',
         ownerName: '',
@@ -122,7 +148,6 @@ document.addEventListener('alpine:init', () => {
                 if (data.success) {
                     this.isSuccess = true;
                     this.responseMsg = data.message;
-                    // Reset form
                     this.brandName = '';
                     this.ownerName = '';
                     this.mobile = '';
@@ -139,7 +164,7 @@ document.addEventListener('alpine:init', () => {
     }));
 });
 
-// CSRF helper
+// CSRF token helper
 function getCsrfToken() {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {

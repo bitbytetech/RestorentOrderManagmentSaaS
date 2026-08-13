@@ -67,7 +67,7 @@ CREATE TABLE tenants_outlet (
     name VARCHAR(150) NOT NULL,
     slug VARCHAR(150) NOT NULL,
     address TEXT NOT NULL,
-    city VARCHAR(100) NOT NULL DEFAULT 'Lucknow',
+    city VARCHAR(100) NOT NULL DEFAULT 'Delhi / Mumbai / Bangalore / Lucknow',
     state VARCHAR(100) NOT NULL DEFAULT 'Uttar Pradesh',
     contact_number VARCHAR(15) NOT NULL,
     is_dine_in_enabled BOOLEAN DEFAULT TRUE,
