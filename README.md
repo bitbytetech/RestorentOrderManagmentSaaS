@@ -1,5 +1,6 @@
-# Multi-Tenant Restaurant Order Management SaaS Platform
+# RestroHub — Multi-Tenant Restaurant Order Management SaaS
 
+> **Positioning:** QR Ordering + Multi-Outlet Menu & Order Management for Growing Restaurants  
 > **Beta Target:** Lucknow F&B Market  
 > **Architecture:** Modular Django Monolith with PostgreSQL 16, Redis 7, Alpine.js 3, & Bootstrap 5.3  
 > **Deployment Target:** Single VPS Containerized Setup (Ubuntu / Docker Compose / Nginx)
@@ -8,7 +9,7 @@
 
 ## 📌 Executive Summary
 
-The **Multi-Tenant Restaurant Order Management SaaS Platform** is a multi-outlet cloud solution tailored for modern food establishments including fine-dining restaurants, quick-service restaurants (QSRs), cafes, sweet shops, bakeries, cloud kitchens, and pubs. It provides seamless **digital QR menu ordering** for customers, an integrated **Cashier Counter POS** for walk-in orders, an **Explicit Variant Pricing Engine** supporting portion and weight-based pricing (e.g. 100g, 250g, Full/Half), **Multi-Outlet menu synchronization & overrides**, and **pre-aggregated real-time analytics**.
+**RestroHub** is an all-in-one multi-tenant cloud OS tailored for fine-dining restaurants, quick-service restaurants (QSRs), cafes, sweet shops, bakeries, cloud kitchens, and pubs. Benchmarked against industry leaders Toast, Petpooja, and Posist, RestroHub unifies **digital QR menu ordering**, **cashier counter POS**, **explicit portion/weight variant pricing**, **multi-outlet menu synchronization & price overrides**, and **pre-aggregated real-time business analytics**.
 
 ---
 

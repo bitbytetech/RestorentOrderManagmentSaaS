@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Live Demo QR Menu — RestroHub (Table T4){% endblock %}
+
+{% block content %}
+<div class="container py-5 max-w-lg mx-auto" x-data="qrSandbox">
+    <!-- Outlet Header Card -->
+    <div class="card-restrohub p-4 rounded-4 mb-4 border-orange">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+                <span class="badge bg-orange text-white fw-bold text-xs mb-1"><i class="bi bi-qr-code-scan me-1"></i> Scanned Table QR Code</span>
+                <h3 class="font-outfit fw-extrabold text-white mb-0">Royal Awadhi Cuisine</h3>
+                <div class="text-slate-400 text-xs mt-1">Hazratganj Outlet, Lucknow</div>
+            </div>
+            <div class="text-end">
+                <div class="badge bg-orange text-white font-mono fs-6 px-3 py-2 rounded-3">Table T4</div>
+            </div>
+        </div>
+        <hr class="border-slate-800 my-2">
+        <div class="d-flex justify-content-between align-items-center text-xs text-slate-300">
+            <span><i class="bi bi-clock me-1 text-orange"></i> Open 11:00 AM - 11:30 PM</span>
+            <span class="text-green fw-semibold"><i class="bi bi-check-circle-fill me-1"></i> Live Ordering Active</span>
+        </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="d-flex gap-2 overflow-x-auto mb-4 pb-1">
+        <button class="btn btn-orange btn-sm rounded-pill px-4 text-xs font-outfit fw-bold">All Categories</button>
+        <button class="btn btn-outline-secondary btn-sm rounded-pill px-4 text-xs text-slate-300 border-slate">Starters</button>
+        <button class="btn btn-outline-secondary btn-sm rounded-pill px-4 text-xs text-slate-300 border-slate">Main Course</button>
+        <button class="btn btn-outline-secondary btn-sm rounded-pill px-4 text-xs text-slate-300 border-slate">Sweets</button>
+    </div>
+
+    <!-- Menu Items List -->
+    <div class="d-flex flex-column gap-3 mb-5">
+        <div class="card-restrohub p-3 rounded-4 border-slate-800">
+            <div class="d-flex justify-content-between gap-3 mb-2">
+                <div>
+                    <span class="badge bg-success text-xs px-2 py-0.5 mb-1">VEG</span>
+                    <h5 class="text-white font-outfit fw-bold mb-1">Paneer Tikka (Chef Special)</h5>
+                    <p class="text-slate-400 text-xs mb-2">Cottage cheese cubes marinated in spiced yogurt and grilled in tandoor.</p>
+                </div>
+                <img src="https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=400&q=80" alt="Paneer Tikka" class="rounded-3" style="width: 80px; height: 80px; object-fit: cover;">
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center pt-2 border-top border-slate-800">
+                <span class="text-xs text-slate-400">Select Portion:</span>
+                <button class="btn btn-sm btn-outline-light rounded-pill text-xs border-slate" @click="addToCart('Paneer Tikka', 180, 'Half Portion')">
+                    Half (4 Pcs) — <strong class="text-orange">₹180</strong> +
+                </button>
+                <button class="btn btn-sm btn-outline-light rounded-pill text-xs border-slate" @click="addToCart('Paneer Tikka', 310, 'Full Portion')">
+                    Full (8 Pcs) — <strong class="text-orange">₹310</strong> +
+                </button>
+            </div>
+        </div>
+
+        <div class="card-restrohub p-3 rounded-4 border-slate-800">
+            <div class="d-flex justify-content-between gap-3 mb-2">
+                <div>
+                    <span class="badge bg-danger text-xs px-2 py-0.5 mb-1">NON-VEG</span>
+                    <h5 class="text-white font-outfit fw-bold mb-1">Royal Awadhi Dum Biryani</h5>
+                    <p class="text-slate-400 text-xs mb-2">Slow-cooked fragrant Basmati rice layered with succulent marinated meat & saffron.</p>
+                </div>
+                <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=400&q=80" alt="Dum Biryani" class="rounded-3" style="width: 80px; height: 80px; object-fit: cover;">
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center pt-2 border-top border-slate-800">
+                <span class="text-xs text-slate-400">Select Portion:</span>
+                <button class="btn btn-sm btn-outline-light rounded-pill text-xs border-slate" @click="addToCart('Royal Awadhi Dum Biryani', 220, 'Half Portion')">
+                    Half — <strong class="text-orange">₹220</strong> +
+                </button>
+                <button class="btn btn-sm btn-outline-light rounded-pill text-xs border-slate" @click="addToCart('Royal Awadhi Dum Biryani', 390, 'Full Portion')">
+                    Full — <strong class="text-orange">₹390</strong> +
+                </button>
+            </div>
+        </div>
+
+        <div class="card-restrohub p-3 rounded-4 border-slate-800">
+            <div class="d-flex justify-content-between gap-3 mb-2">
+                <div>
+                    <span class="badge bg-success text-xs px-2 py-0.5 mb-1">VEG</span>
+                    <h5 class="text-white font-outfit fw-bold mb-1">Pure Silver Kaju Katli</h5>
+                    <p class="text-slate-400 text-xs mb-2">Premium cashew fudge prepared with pure desi ghee and edible silver leaf.</p>
+                </div>
+                <img src="https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=400&q=80" alt="Kaju Katli" class="rounded-3" style="width: 80px; height: 80px; object-fit: cover;">
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center pt-2 border-top border-slate-800">
+                <span class="text-xs text-slate-400">Select Weight:</span>
+                <button class="btn btn-sm btn-outline-light rounded-pill text-xs border-slate" @click="addToCart('Pure Silver Kaju Katli', 120, '100 Grams')">
+                    100g — <strong class="text-orange">₹120</strong> +
+                </button>
+                <button class="btn btn-sm btn-outline-light rounded-pill text-xs border-slate" @click="addToCart('Pure Silver Kaju Katli', 300, '250 Grams')">
+                    250g — <strong class="text-orange">₹300</strong> +
+                </button>
+                <button class="btn btn-sm btn-outline-light rounded-pill text-xs border-slate" @click="addToCart('Pure Silver Kaju Katli', 1150, '1000 Grams (1 Kg)')">
+                    1 Kg — <strong class="text-orange">₹1150</strong> +
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Sticky Cart Bar -->
+    <div class="fixed-bottom p-3 glass-nav border-top border-slate-700 max-w-lg mx-auto rounded-top-4 shadow-2xl">
+        <template x-if="cart.length === 0">
+            <div class="text-center text-slate-400 text-xs py-1">Tap portion or weight buttons above to build your order!</div>
+        </template>
+
+        <template x-if="cart.length > 0">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-xs text-slate-300">Table T4 Cart (<span x-text="cartItemCount"></span> items)</span>
+                    <span class="text-orange fw-extrabold font-outfit fs-5">₹<span x-text="cartTotal"></span></span>
+                </div>
+                <button class="btn btn-orange rounded-pill w-100 font-outfit fw-bold text-white shadow py-2.5"
+                        @click="alert('RestroHub Demo Order submitted! Status set to PLACED for Table T4.')">
+                    Confirm & Submit Order to Kitchen &rarr;
+                </button>
+            </div>
+        </template>
+    </div>
+</div>
+{% endblock %}
