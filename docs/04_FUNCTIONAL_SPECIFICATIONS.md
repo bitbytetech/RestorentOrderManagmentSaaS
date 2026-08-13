@@ -63,11 +63,16 @@ Rather than using simple mathematical percentage multipliers (which break down f
 
 ## 4. QR Code & Table Management System
 
-### 4.1 URL Structure
-- **Table Specific Dine-In QR:** `https://<domain>/o/<outlet_slug>/t/<table_code>`
+### 4.1 URL Structure & QR Encoding
+- **Table Specific Dine-In QR:** `https://<domain>/o/<outlet_slug>/t/<table_number>` (e.g., `/o/hazratganj/t/1` for Table 1).
 - **Takeaway QR:** `https://<domain>/o/<outlet_slug>/takeaway`
+- **QR Encoding Rule:** Each QR code encodes a unique combination of **Store Identifier** (`outlet_slug` / `outlet_id`) and **Numeric Table Number** (`table_number`).
 
-### 4.2 Table Policy Enforcement Modes
+### 4.2 Numeric Storage & Display Standardization Rule
+- **Numeric Database Storage:** In the database (`tables_table` & `orders_order`), table numbers are stored strictly as **numeric** integers (`1`, `2`, `3`...).
+- **Standardized Display Format:** Across ALL outlets, the table identifier is presented in the UI, Cashier POS, KDS, receipts, and customer web apps prefixed with `T` (e.g., `T1`, `T2`, `T3`...).
+
+### 4.3 Table Policy Enforcement Modes
 - **`STRICT_ENFORCED`:** Customer cannot modify the table number detected from the scanned QR code.
 - **`CUSTOMER_EDITABLE`:** Customer can modify or select their table number from a dropdown interface (ideal for open-patio or poolside dining).
 
@@ -109,7 +114,7 @@ Rather than using simple mathematical percentage multipliers (which break down f
 
 ### 5.1 Flow A: Customer QR Ordering
 1. Customer scans table/takeaway QR code.
-2. Web page resolves `outlet_id` and `table_code`.
+2. Web page resolves `outlet_slug` and numeric `table_number` (formatting and displaying `T1` to customer).
 3. Customer enters 10-digit mobile number (stored in session storage).
 4. Customer selects categories/tags, chooses portion/weight variants, adds notes.
 5. Cart submitted via AJAX/Alpine fetch. Order created with status `PLACED`.

@@ -93,7 +93,7 @@ For full technical specifications and implementation guidelines, refer to the do
 
 ## 🚀 Key System Features
 
-- **Dynamic QR Code Ordering:** Zero-app download mobile web scanning for Dine-In & Takeaway with table edit policy controls.
+- **Dynamic QR Code Ordering & Table Management:** Store ID + Numeric Table Number QR encoding (`/o/<outlet_slug>/t/<table_number>`). Tables displayed standard as `T1`, `T2`, `T3`... across all outlets with numeric integer storage in PostgreSQL.
 - **Counter POS & Cashier Desk:** Fast walk-in order creation, customer mobile capture, split/cash/UPI payment recording, and instant KOT generation.
 - **Explicit Variant Engine:** Non-proportional price support (Full ₹120 / Half ₹75) and weight-based units (`gram`, `kilogram`, `full`, `half`, `plate`, `piece`, `liter`, `ml`).
 - **Multi-Outlet Synchronization:** Centralized Master Menu with store-level price overrides and availability toggling ("In Stock" / "Sold Out").

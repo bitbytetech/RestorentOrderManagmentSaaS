@@ -172,7 +172,7 @@ CREATE TABLE menu_outlet_override (
 CREATE TABLE tables_table (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     outlet_id UUID NOT NULL REFERENCES tenants_outlet(id) ON DELETE CASCADE,
-    table_number VARCHAR(20) NOT NULL,
+    table_number INT NOT NULL CHECK (table_number > 0), -- Numeric table number (e.g. 1, 2, 3). Displayed as T1, T2, T3... in UI
     capacity INT DEFAULT 4,
     is_active BOOLEAN DEFAULT TRUE,
     CONSTRAINT unique_outlet_table UNIQUE (outlet_id, table_number)
@@ -188,7 +188,7 @@ CREATE TABLE orders_order (
     outlet_id UUID NOT NULL REFERENCES tenants_outlet(id) ON DELETE CASCADE,
     order_number VARCHAR(30) UNIQUE NOT NULL, -- e.g. ORD-20260813-001
     order_type VARCHAR(20) NOT NULL CHECK (order_type IN ('DINE_IN', 'TAKEAWAY', 'COUNTER')),
-    table_number VARCHAR(20), -- Populated if DINE_IN
+    table_number INT, -- Numeric table number (populated if DINE_IN; displayed as T1, T2...)
     
     -- Customer Information
     customer_mobile VARCHAR(15) NOT NULL,

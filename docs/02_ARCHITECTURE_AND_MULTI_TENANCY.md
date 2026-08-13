@@ -78,12 +78,12 @@
 │
 ├── [ Outlet 1: Hazratganj ]
 │     ├── Outlet Manager, Cashier, Kitchen Staff
-│     ├── Tables (T1, T2, T3...)
+│     ├── Tables (Display: T1, T2, T3... | Numeric DB ID: 1, 2, 3...)
 │     ├── Price Overrides & Item Availability Flags
 │     └── Orders (QR + Counter POS)
 │
 └── [ Outlet 2: Gomti Nagar ]
-      ├── Tables (GT1, GT2...)
+      ├── Tables (Display: T1, T2, T3... | Numeric DB ID: 1, 2, 3...)
       ├── Price Overrides & Item Availability Flags
       └── Orders (QR + Counter POS)
 ```
@@ -110,6 +110,15 @@
 
 3. **Cross-Tenant Guard Decorator:**
    API endpoints validate that requested `outlet_id` or `order_id` belongs strictly to the authenticated user's `organization_id`. Any attempt to cross access throws an immediate `403 Forbidden` response.
+
+### 3.3 Table Naming, Storage & QR Code Specification
+
+1. **Numeric Database Storage:**
+   Actual table identifiers stored in the database (`tables_table.table_number`) are strictly **numeric** integers (e.g., `1`, `2`, `3`).
+2. **Standardized Display Naming:**
+   For all outlets, table names in the UI, Cashier POS, Kitchen Display System (KDS), receipts, and customer mobile web apps are consistently presented as `T1`, `T2`, `T3`... (prefixed with `T`).
+3. **QR Code Encoding:**
+   QR codes are generated using a combination of the **Store Identifier** (`outlet_slug` or `outlet_id`) and the **Numeric Table Number** (`table_number`), e.g., `https://<domain>/o/<outlet_slug>/t/<table_number>`. This guarantees unique table identification across multi-outlet tenants while preserving standard numeric schema design.
 
 ---
 
