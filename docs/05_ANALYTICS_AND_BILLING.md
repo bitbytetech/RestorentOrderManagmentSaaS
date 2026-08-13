@@ -41,6 +41,26 @@ To capture market share rapidly across India, the platform uses a **Freemium Acq
 
 | Tier | Price | Included Outlets | Daily Order Limit | Core Features | Target Audience |
 | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Starter (Limited Offer)** | **₹0 / Month** (Lifetime Free) | 1 Outlet | **100 Orders / Day** | Basic QR menu, POS counter order logging, single-outlet KOT, basic analytics. | First 100 restaurant signups across India. |
+| **Growth (Popular)** | **₹699 / Month** (₹559/mo Billed Annually) | Up to 2 Outlets | **500 Orders / Day** | All Starter features + multi-outlet central management, item availability sync, advanced analytics, priority WhatsApp support. | Established single & dual-outlet restaurants, busy cafes. |
+| **Professional** | **₹1,499 / Month** (₹1,199/mo Billed Annually) | Up to 5 Outlets | **1,000 Orders / Day** | All Growth features + 1-click menu cloning across stores, outlet comparison analytics, global tag sync, dedicated account manager. | Growing multi-outlet restaurant chains, cloud kitchen groups. |
+
+---
+
+## 3. High-Converting Landing Page Architecture
+
+The RestroHub landing page is benchmarked against Toast, Petpooja, and Posist:
+
+1. **Top Announcement Bar:**
+   - Highlights the limited-time acquisition offer: *"🔥 Limited Time Offer: Get 100 Free Orders/Day Lifetime Free for 1 Outlet (First 100 Customers Across India!)."*
+
+2. **Hero Section:**
+   - **Headline:** *Manage Menus, Orders & Outlets from One Dashboard*
+   - **Badges:** `Multi-Outlet Ready` • `No App Download` • `Live Order Tracking`
+   - **Mockup:** Interactive dashboard preview showing real-time store metrics.
+
+3. **Problem vs. Solution Section:**
+   - Highlights manual order delays vs. instant QR ordering and live stock toggling.
 
 4. **Pan India Launch Offer Banner:**
-   - *"Limited Time Offer: Get Lifetime Free Access for 1 Outlet (Up to 100 Orders/Day) for the First 100 Customers Across India. No Credit Card Required!"*
+   - Prominent conversion card reinforcing the 100 free daily orders lifetime offer for the first 100 customers across India.
