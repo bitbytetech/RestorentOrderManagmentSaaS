@@ -1,0 +1,685 @@
+```python
+md_content = """# Product Requirements Document (PRD) & Technical Specification
+
+## System Name: Multi-Tenant Restaurant Order Management SaaS Platform (Beta: Lucknow)
+**Document Version:** 1.0 (Production Blueprint)  
+**Target Architecture:** Modular Django Monolith with PostgreSQL, Redis, Alpine.js, & Bootstrap 5  
+**Deployment Target:** Single VPS Containerized Setup (Ubuntu / Docker Compose / Nginx)  
+
+---
+
+## 1. Executive Summary & Product Vision
+
+### 1.1 Overview
+The **Multi-Tenant Restaurant Order Management SaaS Platform** is a multi-outlet cloud solution tailored for modern food establishments including fine-dining restaurants, quick-service restaurants (QSRs), cafes, sweet shops, bakeries, cloud kitchens, and pubs. It offers digital QR menu ordering, POS counter ordering, multi-outlet menu customization, variant pricing (full/half/weight-based), real-time order lifecycle tracking, and pre-aggregated analytics.
+
+### 1.2 Strategic Goals
+- **Frictionless Customer Ordering:** Instant QR scan access on mobile browsers without app installation; supports Dine-in and Takeaway.
+- **Counter & Walk-in Ordering:** Integrated cashier interface for fast walk-in order entry, Kitchen Order Ticket (KOT) generation, and payment collection.
+- **Flexible Pricing Engine:** Support complex Indian F&B scenarios such as weight-based selling (e.g., Kaju Katli 100g, 250g, 1kg) and non-proportional variant pricing (e.g., Full Noodles ₹120, Half ₹75).
+- **Multi-Outlet Synchronization:** Allow chain owners to maintain a central master menu while overriding pricing, availability, or items per specific outlet.
+- **Cost-Effective Scalability:** Built on a modular monolithic architecture with Redis caching and PostgreSQL pre-aggregation to serve high concurrency with low infrastructure overhead during the Lucknow beta launch.
+
+---
+
+## 2. System Architecture & Technical Stack
+
+
+```
+
+```
+                 +-------------------------------------------------+
+                 |                 CLIENT LAYER                    |
+                 |   Bootstrap 5 + Alpine.js (Lightweight UI)      |
+                 |   (QR Web App / Admin Portal / Cashier POS / KDS) |
+                 +-------------------------------------------------+
+                                          |
+                                          v
+                 +-------------------------------------------------+
+                 |           NGINX REVERSE PROXY & SSL            |
+                 +-------------------------------------------------+
+                                          |
+                                          v
+                 +-------------------------------------------------+
+                 |             DJANGO WSGI / ASGI                  |
+                 |        (Modular Monolith Framework)             |
+                 +-------------------------------------------------+
+                  /       |                        |              \\
+                 /        |                        |               \\
+                v         v                        v                v
+    +---------------+ +---------------+ +------------------+ +-----------------+
+    | Accounts App  | |   Menu App    | |   Orders App     | | Analytics App   |
+    | Tenant/Outlet | | Variant Engine| | QR & Counter POS | | Pre-Aggregates  |
+    +---------------+ +---------------+ +------------------+ +-----------------+
+                 \\        |                        |               /
+                  \\       |                        |              /
+                   v      v                        v             v
+                 +-------------------------------------------------+
+                 |            PERSISTENCE & CACHING                |
+                 | - PostgreSQL 16 (Primary RDBMS + Tenant Rules)  |
+                 | - Redis 7 (Menu Cache & Celery Task Queue)      |
+                 +-------------------------------------------------+
+
+```
+
+```
+
+### 2.1 Technology Stack Choice & Justification
+- **Backend Framework:** Python 3.12 / Django 5.x  
+  *Justification:* Provides robust ORM, built-in admin dashboard, secure authentication, clean app modularization, and speed of development.
+- **Database:** PostgreSQL 16+  
+  *Justification:* ACID compliance, JSONB support for variant attributes, indexing capabilities, and multi-tenant data isolation using strict foreign-key scoping (`tenant_id`).
+- **Frontend Interactivity:** Alpine.js 3.x  
+  *Justification:* Replaces heavy SPA frameworks (React/Vue). Provides declarative reactivity for shopping carts, variant selectors, dynamic totals, and real-time order polling with minimal JS payload.
+- **UI Styling:** Bootstrap 5.3  
+  *Justification:* Responsive layout grid, mobile-first design, accessibility, and utility classes for quick styling across admin dashboards and customer mobile interfaces.
+- **Caching & Async Task Queue:** Redis 7 + Celery 5.x  
+  *Justification:* Redis caches serialized JSON menus to ensure sub-50ms page loads for QR scanning. Celery offloads reporting aggregations and background tasks.
+- **Web Server & Hosting:** Nginx + Gunicorn inside Docker containers on a Linux VPS (4 vCPU, 8 GB RAM).
+
+---
+
+## 3. Multi-Tenant Architecture & Domain Scoping
+
+### 3.1 Data Scoping Strategy
+The platform utilizes **Row-Level Shared Database Multi-Tenancy**. Every business entity belongs to an `Organization` (`tenant_id`).
+
+
+```
+
+[ Organization / Tenant ] (e.g., Royal Cafe Group)
+├── Tenant Admin (Owner)
+├── Master Menu (Categories, Items, Variants)
+├── Subscription Tier (e.g., Growth Plan)
+│
+├── [ Outlet 1: Hazratganj ]
+│     ├── Outlet Manager, Cashier, Kitchen Staff
+│     ├── Tables (T1, T2, T3...)
+│     ├── Price Overrides & Item Availability Flags
+│     └── Orders (QR + Counter)
+│
+└── [ Outlet 2: Gomti Nagar ]
+├── Tables (GT1, GT2...)
+├── Price Overrides & Item Availability Flags
+└── Orders (QR + Counter)
+
+```
+
+### 3.2 Tenant Isolation Safeguards
+1. **Django Model Manager Scoping:** All database models (Menu, Order, Table) inherit from a custom `TenantAwareModel` class that enforces `organization_id` on querysets.
+2. **Middleware Context:** A custom `TenantMiddleware` extracts the authenticated user's `organization_id` or resolved outlet slug from the URL request path and injects it into request thread locals.
+3. **Cross-Tenant Guard:** API endpoints validate that requested `outlet_id` belongs strictly to the user's logged-in `organization_id`.
+
+---
+
+## 4. User Roles & Access Control Matrix (RBAC)
+
+| Role | Access Scope | Key Permissions & Responsibilities |
+| :--- | :--- | :--- |
+| **Super Admin** | Platform-wide | Manages tenant accounts, subscription plans, system settings, global metrics, and billing state. |
+| **Restaurant Owner** | Tenant-wide (All Outlets) | Full access to business profile, multi-outlet setup, master menu creation, price syncing, store cloning, billing, and organizational financial reports. |
+| **Outlet Manager** | Assigned Outlet(s) | Manages outlet-specific item availability (toggle sold out), updates table layout, overrides pricing, manages cashier accounts, and views outlet sales reports. |
+| **Cashier / Counter Operator** | Assigned Outlet | **Counter POS Interface:** Creates walk-in orders, accepts QR cash/UPI payments, triggers KOT printing, updates order lifecycle states, and processes takeaway collections. |
+| **Kitchen Staff (KDS)** | Assigned Outlet | **Kitchen Display Interface:** Real-time view of incoming orders (`PLACED`, `PREPARING`), updates item readiness (`READY`), prints physical KOTs. No pricing access. |
+| **Customer** | Dynamic Session | Scans table/takeaway QR or visits counter link. Identifies via verified mobile number. Places orders, customizes variants, views live status. |
+
+---
+
+## 5. Detailed Functional Specifications
+
+### 5.1 Onboarding & Organization Setup
+- **Registration Flow:** Owner signs up with Brand Name, Owner Name, Mobile Number (OTP Verified), Email, and Password.
+- **Mandatory First Outlet:** Registration wizard forces creation of Outlet #1 (Name, Address, City, Contact, Opening Hours) before accessing the dashboard.
+- **Multi-Outlet Expansion:** Owners can add extra outlets up to the maximum permitted by their subscription tier.
+
+---
+
+### 5.2 Menu, Variant & Category Management
+
+#### Hybrid Structure: Categories vs. Tags
+- **Categories (Primary Structural Hierarchy):** Single selection per item (e.g., *South Indian, Chinese, Continental, Desserts, Beverages, Alcoholic Drinks*). Drives top tab navigation on mobile web.
+- **Tags (Multi-Select Filters):** Flexible attributes (e.g., *Veg, Non-Veg, Egg, Chef Special, Spicy, Jain, Bestseller, Sugar-Free*). Enables instant filtering without altering category views.
+
+#### Advanced Variant Engine
+Mathematical fraction-based auto-pricing fails in real F&B operations. The system implements an **Explicit Variant Architecture**:
+1. **Simple Flat Items:** e.g., Mineral Water ₹20 (Single Default Variant).
+2. **Sized Portion Variants:** Full Noodles ₹120, Half Noodles ₹75 (Non-proportional custom pricing).
+3. **Weight & Unit Variants:** Kaju Katli (Unit: Gram/Kg) → 100g = ₹120, 250g = ₹300, 1000g = ₹1150.
+4. **Supported Units:** `full`, `half`, `quarter`, `piece`, `plate`, `bowl`, `glass`, `gram`, `kilogram`, `liter`, `ml`.
+
+#### Outlet Override & Sync Architecture
+- **Master Item Repository:** Items created at Organization level.
+- **Outlet Overrides (`outlet_menu_override`):**
+  - **Availability Toggle:** Mark item/variant as "In Stock" or "Sold Out" per outlet.
+  - **Price Override:** Charge ₹150 for Full Noodles in Airport Outlet vs ₹120 in High Street Outlet.
+- **Outlet Cloning Wizard:** Allows copying full menu hierarchy, pricing rules, and tags from Outlet A to Outlet B with one click.
+
+---
+
+### 5.3 QR Code & Table Management System
+
+#### Dynamic QR Structure
+- **Table QR URL Format:** `https://<domain>/o/<outlet_slug>/t/<table_code>`
+- **Takeaway QR URL Format:** `https://<domain>/o/<outlet_slug>/takeaway`
+
+#### Table Policy Controls
+- Restaurant Owner / Outlet Manager sets the **Table Editing Rule**:
+  - `STRICT_ENFORCED`: Customer *cannot* change the table number detected from the scanned QR code.
+  - `CUSTOMER_EDITABLE`: Customer can edit or re-select their table number from a dropdown (useful if seating changes or for broad area/patio ordering).
+
+---
+
+### 5.4 Dual Ordering Engines (QR & Counter POS)
+
+#### Flow A: Customer QR Ordering (Dine-In & Takeaway)
+1. **Scan & Resolve:** Scans QR code → Web page resolves `outlet_id` and `table_code` (if present).
+2. **Mobile Auth:** Customer enters 10-digit mobile number (cached in browser session storage).
+3. **Menu Exploration:** Filters by Veg/Non-Veg tags or browses categories with sticky header search.
+4. **Variant Selection:** Selects portion/weight variant (e.g., Half, 250g) and adds notes (e.g., "Extra spicy").
+5. **Cart & Submit:** Order payload submitted via AJAX/Alpine fetch. State set to `PLACED`.
+6. **Order Tracking Page:** Customer views real-time status bar (`Placed` → `Preparing` → `Ready` → `Delivered`).
+
+#### Flow B: Counter / Cashier POS Ordering (Walk-In / Phone / Takeaway)
+1. **POS Dashboard:** Optimized desktop/tablet interface with keyboard shortcuts and quick category grid.
+2. **Order Type Selection:** Cashier toggles `Dine-In` (selects available table) or `Takeaway` / `Counter Walk-in`.
+3. **Customer Mobile Capture:** Cashier asks and enters customer's mobile number (autocompletes past customer profile).
+4. **Fast Cart Builder:** Instant item search, variant tap, custom item discount input.
+5. **Payment Collection:**
+   - Cash / UPI / Card / Pay Later toggle.
+   - Cashier clicks **"Place & Print KOT"**.
+6. **Instant Status:** Order bypasses initial verification and directly enters `CONFIRMED` or `PREPARING`.
+
+
+```
+
+```
+                +------------------------------------------+
+                |             ORDER INITIATION             |
+                +------------------------------------------+
+                             /                \\
+                            /                  \\
+       +-----------------------+            +-----------------------+
+       | Flow A: Customer QR   |            | Flow B: Counter POS   |
+       | (Dine-In / Takeaway)  |            | (Cashier Walk-in)     |
+       +-----------------------+            +-----------------------+
+                   |                                    |
+                   v                                    v
+       Status: [ PLACED ]                   Status: [ CONFIRMED ]
+                   |                                    |
+                   +-----------------+------------------+
+                                     |
+                                     v
+                         +-----------------------+
+                         | Status: [ PREPARING ] | (Kitchen KDS View)
+                         +-----------------------+
+                                     |
+                                     v
+                         +-----------------------+
+                         | Status: [ READY ]     | (Pickup / Serve Alert)
+                         +-----------------------+
+                                     |
+                                     v
+                         +-----------------------+
+                         | Status: [ DELIVERED ] | (Order Closed)
+                         +-----------------------+
+
+```
+
+```
+
+---
+
+### 5.5 Order Lifecycle & State Machine
+
+Order state transition rules enforce operational consistency:
+
+- `PLACED`: Customer submitted QR order. Awaiting automated or cashier confirmation.
+- `CONFIRMED`: Order accepted by counter/kitchen. KOT generated.
+- `PREPARING`: Food is actively being prepared in the kitchen.
+- `READY`: Dishes prepared; ready for table service or counter takeaway pickup.
+- `DELIVERED`: Order fulfilled and served to table/customer.
+- `CANCELLED`: Cancelled by cashier/manager or rejected due to out-of-stock items. Requires cancellation reason logging.
+
+---
+
+### 6. Analytics & Pre-Aggregated Reporting Engine
+
+To prevent database bottlenecking during peak operational hours, financial and item sales aggregations are performed via Celery background tasks into pre-aggregated summary tables.
+
+#### Reporting Views
+1. **Executive Dashboard KPIs:** Real-time Today's Revenue, Order Volume, Active Tables, Average Order Value (AOV), Pending Orders.
+2. **Sales Analytics:** Filters for Daily, Weekly, Monthly, Yearly, and Custom Date Ranges. Breakdowns by:
+   - Total Business (All Outlets)
+   - Outlet vs Outlet Comparison
+   - Category Breakdown (e.g., Beverage % vs Food %)
+3. **Item Performance Matrices:**
+   - **Top Sellers:** Ranked by total sales volume (quantity) and revenue generated (Overall & Store-specific).
+   - **Low Sellers:** Bottom 10 items to identify menu clutter or wasted stock.
+   - **Variant Spread:** Sales volume ratio of Full vs Half portions.
+
+---
+
+## 7. PostgreSQL Database Schema Specification
+
+Below is the complete, production-ready DDL Schema for PostgreSQL.
+
+```sql
+-- PostgreSQL Production DDL Schema
+-- Extension for UUID generation
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ==========================================
+-- 1. TENANTS & OUTLETS
+-- ==========================================
+
+CREATE TABLE tenants_organization (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(150) NOT NULL,
+    slug VARCHAR(150) UNIQUE NOT NULL,
+    owner_name VARCHAR(100) NOT NULL,
+    owner_email VARCHAR(254) UNIQUE NOT NULL,
+    owner_mobile VARCHAR(15) UNIQUE NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE tenants_outlet (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES tenants_organization(id) ON DELETE CASCADE,
+    name VARCHAR(150) NOT NULL,
+    slug VARCHAR(150) NOT NULL,
+    address TEXT NOT NULL,
+    city VARCHAR(100) NOT NULL DEFAULT 'Lucknow',
+    state VARCHAR(100) NOT NULL DEFAULT 'Uttar Pradesh',
+    contact_number VARCHAR(15) NOT NULL,
+    is_dine_in_enabled BOOLEAN DEFAULT TRUE,
+    is_takeaway_enabled BOOLEAN DEFAULT TRUE,
+    allow_table_editing BOOLEAN DEFAULT FALSE,
+    opening_time TIME,
+    closing_time TIME,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_org_outlet_slug UNIQUE (organization_id, slug)
+);
+
+-- ==========================================
+-- 2. USERS & ROLES
+-- ==========================================
+
+CREATE TABLE users_user (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID REFERENCES tenants_organization(id) ON DELETE CASCADE,
+    mobile VARCHAR(15) UNIQUE NOT NULL,
+    email VARCHAR(254),
+    full_name VARCHAR(100) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(30) NOT NULL CHECK (role IN ('SUPER_ADMIN', 'OWNER', 'OUTLET_MANAGER', 'CASHIER', 'KITCHEN_STAFF', 'CUSTOMER')),
+    is_staff BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE users_user_outlets (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users_user(id) ON DELETE CASCADE,
+    outlet_id UUID NOT NULL REFERENCES tenants_outlet(id) ON DELETE CASCADE,
+    CONSTRAINT unique_user_outlet UNIQUE (user_id, outlet_id)
+);
+
+-- ==========================================
+-- 3. MENU, CATEGORIES, TAGS & VARIANTS
+-- ==========================================
+
+CREATE TABLE menu_category (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES tenants_organization(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    display_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_org_category_name UNIQUE (organization_id, name)
+);
+
+CREATE TABLE menu_tag (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES tenants_organization(id) ON DELETE CASCADE,
+    name VARCHAR(50) NOT NULL, -- e.g., Veg, Non-Veg, Spicy, Chef Special
+    color_code VARCHAR(10) DEFAULT '#16A34A',
+    CONSTRAINT unique_org_tag_name UNIQUE (organization_id, name)
+);
+
+CREATE TABLE menu_item (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES tenants_organization(id) ON DELETE CASCADE,
+    category_id UUID NOT NULL REFERENCES menu_category(id) ON DELETE RESTRICT,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    is_veg BOOLEAN DEFAULT TRUE,
+    primary_image_url TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE menu_item_tag_map (
+    item_id UUID NOT NULL REFERENCES menu_item(id) ON DELETE CASCADE,
+    tag_id UUID NOT NULL REFERENCES menu_tag(id) ON DELETE CASCADE,
+    PRIMARY KEY (item_id, tag_id)
+);
+
+CREATE TABLE menu_variant (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    item_id UUID NOT NULL REFERENCES menu_item(id) ON DELETE CASCADE,
+    variant_name VARCHAR(50) NOT NULL, -- e.g., Full, Half, 250g, 1kg
+    unit_type VARCHAR(20) NOT NULL CHECK (unit_type IN ('full', 'half', 'quarter', 'piece', 'plate', 'bowl', 'glass', 'gram', 'kilogram', 'liter', 'ml')),
+    unit_value NUMERIC(10, 2) DEFAULT 1.0, -- e.g., 250 for 250g
+    base_price NUMERIC(10, 2) NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Store Overrides for Items / Variants
+CREATE TABLE menu_outlet_override (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    outlet_id UUID NOT NULL REFERENCES tenants_outlet(id) ON DELETE CASCADE,
+    variant_id UUID NOT NULL REFERENCES menu_variant(id) ON DELETE CASCADE,
+    override_price NUMERIC(10, 2), -- NULL means use base_price
+    is_available BOOLEAN DEFAULT TRUE,
+    CONSTRAINT unique_outlet_variant UNIQUE (outlet_id, variant_id)
+);
+
+-- ==========================================
+-- 4. TABLES & QR CODES
+-- ==========================================
+
+CREATE TABLE tables_table (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    outlet_id UUID NOT NULL REFERENCES tenants_outlet(id) ON DELETE CASCADE,
+    table_number VARCHAR(20) NOT NULL,
+    capacity INT DEFAULT 4,
+    is_active BOOLEAN DEFAULT TRUE,
+    CONSTRAINT unique_outlet_table UNIQUE (outlet_id, table_number)
+);
+
+-- ==========================================
+-- 5. ORDERS & TRANSACTIONS
+-- ==========================================
+
+CREATE TABLE orders_order (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES tenants_organization(id) ON DELETE CASCADE,
+    outlet_id UUID NOT NULL REFERENCES tenants_outlet(id) ON DELETE CASCADE,
+    order_number VARCHAR(30) UNIQUE NOT NULL, -- e.g. ORD-20260813-001
+    order_type VARCHAR(20) NOT NULL CHECK (order_type IN ('DINE_IN', 'TAKEAWAY', 'COUNTER')),
+    table_number VARCHAR(20), -- Populated if DINE_IN
+    
+    -- Customer Info
+    customer_mobile VARCHAR(15) NOT NULL,
+    customer_name VARCHAR(100),
+    
+    -- Channel & Cashier
+    channel VARCHAR(20) DEFAULT 'QR_CODE' CHECK (channel IN ('QR_CODE', 'COUNTER_POS')),
+    created_by_user_id UUID REFERENCES users_user(id), -- Populated if Cashier created
+    
+    -- Financials
+    subtotal NUMERIC(10, 2) NOT NULL,
+    tax_amount NUMERIC(10, 2) DEFAULT 0.00,
+    discount_amount NUMERIC(10, 2) DEFAULT 0.00,
+    total_amount NUMERIC(10, 2) NOT NULL,
+    payment_status VARCHAR(20) DEFAULT 'PENDING' CHECK (payment_status IN ('PENDING', 'PAID', 'REFUNDED')),
+    payment_method VARCHAR(20) CHECK (payment_method IN ('CASH', 'UPI', 'CARD', 'PAY_LATER')),
+    
+    -- State
+    status VARCHAR(30) DEFAULT 'PLACED' CHECK (status IN ('PLACED', 'CONFIRMED', 'PREPARING', 'READY', 'DELIVERED', 'CANCELLED')),
+    cancellation_reason TEXT,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE orders_orderitem (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_id UUID NOT NULL REFERENCES orders_order(id) ON DELETE CASCADE,
+    item_id UUID NOT NULL REFERENCES menu_item(id),
+    variant_id UUID NOT NULL REFERENCES menu_variant(id),
+    item_name VARCHAR(150) NOT NULL, -- Snapshot at order time
+    variant_name VARCHAR(50) NOT NULL, -- Snapshot at order time
+    unit_price NUMERIC(10, 2) NOT NULL,
+    quantity INT NOT NULL CHECK (quantity > 0),
+    total_price NUMERIC(10, 2) NOT NULL,
+    special_instructions TEXT
+);
+
+-- ==========================================
+-- 6. PRE-AGGREGATED ANALYTICS TABLES
+-- ==========================================
+
+CREATE TABLE analytics_daily_outlet_sales (
+    id SERIAL PRIMARY KEY,
+    date DATE NOT NULL,
+    organization_id UUID NOT NULL REFERENCES tenants_organization(id) ON DELETE CASCADE,
+    outlet_id UUID NOT NULL REFERENCES tenants_outlet(id) ON DELETE CASCADE,
+    total_orders INT DEFAULT 0,
+    total_revenue NUMERIC(12, 2) DEFAULT 0.00,
+    dine_in_revenue NUMERIC(12, 2) DEFAULT 0.00,
+    takeaway_revenue NUMERIC(12, 2) DEFAULT 0.00,
+    cancelled_orders INT DEFAULT 0,
+    CONSTRAINT unique_daily_outlet_sales UNIQUE (date, outlet_id)
+);
+
+CREATE TABLE analytics_daily_item_sales (
+    id SERIAL PRIMARY KEY,
+    date DATE NOT NULL,
+    outlet_id UUID NOT NULL REFERENCES tenants_outlet(id) ON DELETE CASCADE,
+    item_id UUID NOT NULL REFERENCES menu_item(id) ON DELETE CASCADE,
+    variant_id UUID NOT NULL REFERENCES menu_variant(id) ON DELETE CASCADE,
+    total_quantity_sold INT DEFAULT 0,
+    total_revenue NUMERIC(12, 2) DEFAULT 0.00,
+    CONSTRAINT unique_daily_item_sales UNIQUE (date, outlet_id, variant_id)
+);
+
+-- ==========================================
+-- 7. SAAS SUBSCRIPTIONS & BILLING
+-- ==========================================
+
+CREATE TABLE billing_plan (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(50) NOT NULL, -- Starter, Growth, Scale, Pro, Enterprise
+    monthly_price NUMERIC(10, 2) NOT NULL,
+    max_outlets INT NOT NULL DEFAULT 1,
+    max_orders_per_day INT NOT NULL DEFAULT 100,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE billing_subscription (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES tenants_organization(id) ON DELETE CASCADE,
+    plan_id UUID NOT NULL REFERENCES billing_plan(id),
+    status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'EXPIRED', 'CANCELLED')),
+    start_date DATE NOT NULL,
+    end_date DATE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ==========================================
+-- PERFORMANCE INDEXES
+-- ==========================================
+
+CREATE INDEX idx_orders_org_outlet_date ON orders_order (organization_id, outlet_id, created_at DESC);
+CREATE INDEX idx_orders_status ON orders_order (outlet_id, status);
+CREATE INDEX idx_orders_customer_mobile ON orders_order (customer_mobile);
+CREATE INDEX idx_menu_item_org ON menu_item (organization_id, category_id);
+CREATE INDEX idx_outlet_override_lookup ON menu_outlet_override (outlet_id, variant_id);
+
+```
+
+---
+
+## 8. SaaS Subscription & Pricing Strategy
+
+To acquire market share rapidly in Lucknow, the platform offers a compelling lifetime free tier backed by scalable paid tiers.
+
+| Subscription Tier | Monthly Fee | Max Outlets | Daily Order Limit | Target Segment | Key Features |
+| --- | --- | --- | --- | --- | --- |
+| **Starter (Free)** | **₹0 / Free Lifetime** | 1 Outlet | 100 Orders / Day | Food trucks, small cafes, QSRs | QR Menu, Dine-In & Takeaway, Counter POS, Basic Daily Reports |
+| **Growth** | **₹299 / month** | 2 Outlets | 300 Orders / Day | Busy single-unit restaurants | Multi-outlet cloning, Custom receipts, Advanced analytics |
+| **Scale** | **₹699 / month** | 5 Outlets | 1,000 Orders / Day | Multi-branch dining chains | Priority support, Export reports to Excel, Custom domain mapping |
+| **Pro** | **₹1,499 / month** | 10 Outlets | 3,000 Orders / Day | Large restaurant groups, pubs | KDS Integration, Dedicated manager, Automated SMS updates |
+| **Enterprise** | Custom Quote | Unlimited | Unlimited | Large food courts, franchises | Custom API integrations, SLA guarantees, On-site training |
+
+---
+
+## 9. Landing Page Specifications & Growth Hooks
+
+### 9.1 Landing Page Content Structure
+
+1. **Hero Section:**
+* **Headline:** *Transform Your Restaurant with QR & Counter Ordering in 5 Minutes.*
+* **Subheadline:** *Manage digital menus, table QR orders, takeaway, and multi-outlet pricing from a single fast cloud platform.*
+* **CTA Buttons:** `[Start Free Lifetime Plan]` | `[View Live Menu Demo]`
+
+
+2. **Interactive Demo Hook:**
+* Display a dummy QR Code directly on the landing page header. Scanning opens a live sample menu (e.g., "Royal Awadhi Cuisine Demo Store") to immediately showcase speed and UI quality to prospective owners.
+
+
+3. **Feature Highlights:**
+* *Instant Dynamic QR Menus:* Zero app downloads required for customers.
+* *Smart Portion Pricing:* Handles sweets by weight (100g/250g/1kg) and custom half/full prices.
+* *Dual Ordering Engine:* Manage QR scan orders alongside Cashier Counter POS walk-ins.
+* *Multi-Outlet Synchronization:* Push updates across outlets or override local prices easily.
+
+
+4. **Lucknow Launch Promotion Banner:**
+* *"Beta Launch Offer: Get Lifetime Free Access for 1 Outlet (Up to 100 Orders/Day). No Credit Card Required!"*
+
+
+
+---
+
+## 10. Non-Functional Requirements & Security Specifications
+
+### 10.1 Performance SLAs
+
+* **Menu Load Time:** Sub-100ms response time for customer QR scanning via Redis cached JSON payload.
+* **POS Order Placement:** Sub-200ms processing latency for counter cashier order submission.
+* **Reporting Queries:** Dashboard pages must load in < 1 second using pre-aggregated analytics tables.
+
+### 10.2 Security Controls
+
+* **Password Hashing:** Django standard Argon2 / PBKDF2 with HMAC-SHA256.
+* **Data Isolation:** All database queries filtered strictly by `organization_id` context.
+* **Input Sanitization:** Protect against SQL injection and XSS in item descriptions and custom instructions.
+* **Rate Limiting:** Redis-backed rate limiter on customer order submission endpoints (Max 5 orders per mobile number per 10 minutes) to prevent spam.
+
+---
+
+## 11. MVP Implementation Roadmap (6-Week Beta Target)
+
+```
++-----------------------------------------------------------------------------------+
+| WEEK 1-2: Core Architecture & Schema Setup                                        |
+| - Django Modular Monolith setup (`accounts`, `tenants`, `menu`, `orders`, `tables`)|
+| - PostgreSQL schema migration & Model Manager Tenant scoping implementation       |
+| - Authentication & RBAC role permission decorators                                |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| WEEK 3-4: Menu Engine & Order Flows                                               |
+| - Flexible Variant Pricing Engine (Full/Half, Weight Units)                       |
+| - Outlet Menu Override & Cloning Wizard                                           |
+| - Mobile QR Ordering Interface (Bootstrap 5 + Alpine.js cart reactivity)          |
+| - Counter POS Cashier Interface & KOT generation                                  |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| WEEK 5-6: Analytics, Redis Caching & Deployment                                   |
+| - Redis Caching layer for public outlet menus                                     |
+| - Pre-aggregated daily reporting background tasks via Celery                       |
+| - Nginx, Gunicorn, Docker Compose setup on Lucknow Beta VPS                       |
+| - Landing page launch & onboarding initial restaurant pilot cohort                 |
++-----------------------------------------------------------------------------------+
+
+```
+
+---
+
+"""
+
+file_path = "PRD_RESTAURANT_ORDER_MANAGEMENT_SAAS.md"
+with open(file_path, "w", encoding="utf-8") as f:
+f.write(md_content.strip())
+
+print(f"Successfully generated {file_path} with size {len(md_content)} bytes.")
+
+```
+
+```text?code_stdout&code_event_index=1
+Successfully generated PRD_RESTAURANT_ORDER_MANAGEMENT_SAAS.md with size 30744 bytes.
+
+
+```
+
+Your Markdown file is ready
+
+
+---
+
+### Key Review & Enhancements Summary
+
+I have conducted a thorough review of both your **raw requirements** and the **ChatGPT draft**, synthesizing them into a production-grade, highly detailed **Project Requirements Document (PRD) and Technical Specification**.
+
+The output has been saved to **`PRD_RESTAURANT_ORDER_MANAGEMENT_SAAS.md`** so you can directly feed it into **Gemini CLI / Antigravity CLI (agy)** to scaffold and build the project.
+
+---
+
+### What Was Enhanced & Fixed Over the Drafts:
+
+1. **Dual Ordering Engines (QR + Counter POS):**
+* Extended beyond QR ordering to explicitly detail the **Cashier / Counter POS Interface**.
+* Walk-in customers can order at the counter via the cashier, who can capture mobile numbers, assign tables or takeaways, collect payment (Cash, UPI, Card), and directly trigger Kitchen Order Tickets (KOT).
+
+
+2. **Advanced Variant & Unit Pricing Engine:**
+* Fully solved the non-proportional pricing challenge (e.g., Full Noodles ₹120 vs. Half ₹75) and weight-based pricing (e.g., Kaju Katli 100g, 250g, 1kg).
+* Defined clean unit types (`full`, `half`, `quarter`, `gram`, `kilogram`, `piece`, `plate`, `glass`, `liter`, `ml`).
+* Explicitly modeled each variant as an independent sellable option rather than calculating fractions mathematically.
+
+
+3. **Production PostgreSQL DDL Database Schema:**
+* Includes complete SQL DDL with UUID primary keys, foreign key constraints, check constraints, default values, and performance indexes.
+* Enforces multi-tenancy at the data layer using `organization_id` (`tenant_id`) scoping.
+* Includes pre-aggregated tables (`analytics_daily_outlet_sales`, `analytics_daily_item_sales`) to keep query times sub-second during high-traffic operations.
+
+
+4. **Multi-Outlet Sync & Local Overrides:**
+* Detailed the `menu_outlet_override` mechanism, enabling store-specific price adjustments and individual availability toggles ("In Stock" / "Sold Out").
+* Added the "Outlet Cloning Wizard" specification for 1-click menu replication between outlets.
+
+
+5. **Performance & Modular Architecture:**
+* Confirmed the **Modular Monolith** architecture choice (Django + PostgreSQL + Redis + Bootstrap 5 + Alpine.js).
+* Detailed the Redis caching strategy for dynamic menu rendering to achieve sub-50ms page load times on customer QR scans.
+
+
+6. **SaaS Subscription Model:**
+* Formulated a tiered pricing table designed for the Lucknow beta launch: **Starter (Lifetime Free)**, **Growth (₹299/mo)**, **Scale (₹699/mo)**, **Pro (₹1,499/mo)**, and **Enterprise**.
+
+
+
+---
+
+### Summary Table of Main System Components
+
+| Component | Technology | Responsibility |
+| --- | --- | --- |
+| **Backend Framework** | Django 5.x (Python 3.12) | Modular Monolith framework, ORM, Auth, API endpoints |
+| **Database** | PostgreSQL 16+ | ACID transactional store, multi-tenant row isolation |
+| **Caching & Queues** | Redis 7 + Celery 5.x | Sub-50ms menu caching, async sales aggregation tasks |
+| **Frontend Reactive Layer** | Alpine.js 3.x | Lightweight cart reactivity, live order polling, POS UI |
+| **UI Styling** | Bootstrap 5.3 | Mobile-first responsive layout for QR web app & dashboards |
+| **Web Server / Hosting** | Nginx + Gunicorn (Docker) | Reverse proxy, SSL termination, static file serving |
+
+The `.md` file is ready in your workspace for immediate CLI development execution.
